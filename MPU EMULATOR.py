@@ -41,6 +41,8 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
+        self.halted = False
+
     def setFlag(self,flag,value:bool):
         if flag in self.flags:
             self.flags[flag] = value
@@ -70,6 +72,8 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
+    ######FETCH,DECODEANDEXECUTE FUNCTIONS MUST BE PLACED IN A WHILE LOOP#######    
+
     def fetch(self): #Fetches and stores instruction in the instructionRegister
         self.instructionRegister = self.instructionMemory[self.programCounter]
         self.programCounter += 1
@@ -79,6 +83,9 @@ class Ra8_MPU:
         
         if currentInstruction == 0x00: #NOPE instruction (no operation)
             pass
+
+        elif currentInstruction == 0x0001: #HLT instruction (halt)
+            self.halted = True 
         
         elif currentInstruction in range(0x0002,0x003a): #MOV instruction
             hex = currentInstruction
@@ -93,12 +100,11 @@ class Ra8_MPU:
         
         elif currentInstruction in range(0x003a,0x0041): #MVI instruction
             hex = currentInstruction - 0x0039
-            hex = hex - 0x003a
             register = self.register_map[hex] 
             immediate_value = self.instructionMemory[self.programCounter]
             setattr(self,register,immediate_value)
             self.programCounter += 1
-            print(f'The immediate value {value} has been moved to {self.register_map[hex]}')
+            print(f'The immediate value {immediate_value} has been moved to {self.register_map[hex]}')
         
         elif currentInstruction == 0x0041: #LDA instruction (load accumulator from memory)
             high_byte = self.instructionMemory[self.programCounter + 1]
@@ -111,13 +117,22 @@ class Ra8_MPU:
             data = self.instructionMemory[self.programCounter]
             self.A = data
             self.programCounter += 1
-            
+
+        elif currentInstruction in range(0x0043,0x0047): #STR instruction (store B,C,D,E register values to memory)
+            regindex = currentInstruction - 0x0042
+            high_byte = self.instructionMemory[self.programCounter + 1]
+            low_byte = self.isntructionMemory[self.programCounter]
+            address = (high_byte << 8) | low_byte      
+            self.dataMemory[address] = getattr(self,(self.register_map[regindex]))
+            self.programCounter +=2
+
         elif currentInstruction == 0x0049: #STA instruction (store accumulator value to the given memory address)
             high_byte = self.instructionMemory[self.programCounter + 1]
             low_byte = self.instructionMemory[self.programCounter]
             address = (high_byte << 8) | low_byte
             self.dataMemory[address] = self.A
             self.programCounter += 2
+        
 
 
 MPU = Ra8_MPU()
