@@ -76,10 +76,12 @@ class Ra8_MPU:
 
     def decodeANDexecute(self):
         currentInstruction = self.instructionRegister #Identifier to address the instruction register
+        
         if currentInstruction == 0x00: #NOPE instruction (no operation)
             pass
-        elif currentInstruction in range(0x0002,0x003a): #MOVE  instruction
-            currentInstruction = hex
+        
+        elif currentInstruction in range(0x0002,0x003a): #MOV instruction
+            hex = currentInstruction
             hex = hex - 0x02    #expression to decode the registers from the hex instruction
             Xreg = hex // 7
             Yreg = hex % 7
@@ -87,10 +89,36 @@ class Ra8_MPU:
                 Yreg += 1
             Value_to_be_moved = getattr(self,(self.register_map[Yreg]))#gets the value from the source register 
             setattr(self,(self.register_map[Xreg]),Value_to_be_moved)#load the value to the destination register
-            #print(f'The value moved from {self.register_map[Yreg]} to {self.register_map[Xreg]} is {getattr(self,(self.register_map[Xreg]))}')#to check if it happened correctly
+            #print(f'The value moved from {self.register_map[Yreg]} to {self.register_map[Xreg]} is {getattr(self,(self.register_map[Xreg]))}')
+        
+        elif currentInstruction in range(0x003a,0x0041): #MVI instruction
+            hex = currentInstruction - 0x0039
+            hex = hex - 0x003a
+            register = self.register_map[hex] 
+            immediate_value = self.instructionMemory[self.programCounter]
+            setattr(self,register,immediate_value)
+            self.programCounter += 1
+            print(f'The immediate value {value} has been moved to {self.register_map[hex]}')
+        
+        elif currentInstruction == 0x0041: #LDA instruction (load accumulator from memory)
+            high_byte = self.instructionMemory[self.programCounter + 1]
+            low_byte = self.instructionMemory[self.programCounter]
+            address = (high_byte << 8) | low_byte
+            self.A = self.dataMemory[address]
+            self.programCounter += 2
+
+        elif currentInstruction == 0x0042: #LDI instruction (load accumulator with immediate value)
+            data = self.instructionMemory[self.programCounter]
+            self.A = data
+            self.programCounter += 1
+            
+        elif currentInstruction == 0x0049: #STA instruction (store accumulator value to the given memory address)
+            high_byte = self.instructionMemory[self.programCounter + 1]
+            low_byte = self.instructionMemory[self.programCounter]
+            address = (high_byte << 8) | low_byte
+            self.dataMemory[address] = self.A
+            self.programCounter += 2
 
 
 MPU = Ra8_MPU()
-
-
 
