@@ -1,0 +1,1 @@
+This is the software emulator for my diy ttl based microprocessor made from discrete logic ICs inspired by the architecture of intel 8085.
