@@ -72,7 +72,11 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
-    ######FETCH,DECODEANDEXECUTE FUNCTIONS MUST BE PLACED IN A WHILE LOOP#######    
+    ######FETCH,DECODEANDEXECUTE and  FUNCTIONS MUST BE PLACED IN A WHILE LOOP########
+    ''' 
+    Todo:
+    1: Adding method to set flags at the end of every operation
+    '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
         self.instructionRegister = self.instructionMemory[self.programCounter]
@@ -133,7 +137,53 @@ class Ra8_MPU:
             self.dataMemory[address] = self.A
             self.programCounter += 2
         
+        elif currentInstruction in range(0x005c,0x0060): #ADD instruction
+            regindex = currentInstruction - 0x005b
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator += regValue
 
+        elif currentInstruction == 0x0060: #ADI instructions (Add immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator  += value
+            self.programCounter += 1
+
+        elif currentInstruction in range(0x0061,0x0065): #SUB instruction
+            regindex = currentInstruction - 0x0060
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator -= regValue
+
+        elif currentInstruction == 0x0065: #SUI instructions (Sub immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator -= value
+            self.programCounter += 1
+
+        elif currentInstruction in range(0x0066,0x006a): #MUL instruction
+            regindex = currentInstruction - 0x0065
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator = accumulator * regValue
+
+        elif currentInstruction == 0x006a: #MUI instructions (Multiply immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator = accumulator * value
+            self.programCounter += 1 
+
+        elif currentInstruction in range(0x006b,0x006f): #DIV instruction
+            regindex = currentInstruction - 0x005a
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator = accumulator // regValue
+
+        elif currentInstruction == 0x006f: #DII instructions (Divide immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator = accumulator // value
+            self.programCounter += 1 
+        
 
 MPU = Ra8_MPU()
-
