@@ -30,11 +30,11 @@ class Ra8_MPU:
 
         #Flags register
         self.flags = {
-            'Z':0,
-            'S':0,
-            'P':0,
-            'C':0,
-            'O':0
+            'Z':False,
+            'S':False,
+            'P':False,
+            'C':False,
+            'O':False
         }
 
         #Setting up the MPU memory
@@ -63,20 +63,29 @@ class Ra8_MPU:
         self.instructionRegister = 0x00
         self.programCounter = 0x0000
         self.stackPointer = 0xffff
+
         self.flags = {
-            'Z':0,
-            'S':0,
-            'P':0,
-            'C':0,
-            'O':0
+            'Z':False,
+            'S':False,
+            'P':False,
+            'C':False,
+            'O':False
         }
+
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
+
+        self._halted = False
+        self._handleflags = False
 
     ######FETCH,DECODEANDEXECUTE and HANDLECARRY FUNCTIONS MUST BE PLACED IN A WHILE LOOP WITH CORRECT ORDER########
     ''' 
     Todo:
     1: Adding method to set flags at the end of every operation
+
+        NOTE:_handleflags must be set to false when fetching instructions
+        and must be set to true when necessay in the decodeandexecute function
+
     '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
