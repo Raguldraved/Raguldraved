@@ -83,14 +83,16 @@ class Ra8_MPU:
     Todo:
     1: Adding method to set flags at the end of every operation
 
-        NOTE:_handleflags must be set to false when fetching instructions
+        Note:_handleflags must be set to false when fetching instructions
         and must be set to true when necessay in the decodeandexecute function
-
     '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
         self.instructionRegister = self.instructionMemory[self.programCounter]
         self.programCounter += 1
+
+    def handleFlag():
+        pass
 
     def decodeANDexecute(self):
         currentInstruction = self.instructionRegister #Identifier to address the instruction register
@@ -208,5 +210,41 @@ class Ra8_MPU:
         elif currentInstruction == 0x0087: #CMA instruction (Complements accumulator value withour changing the flags)          
             accumulator = self.A
             accumulator = not accumulator
+
+        elif currentInstruction in range(0x0070,0x0074): #AND instruction
+            regindex = currentInstruction - 0x006F
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator = accumulator & regValue
+
+        elif currentInstruction == 0x0074: #ANI instructions (logical AND operation on the Immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator = accumulator & value
+            self.programCounter += 1
+
+        elif currentInstruction in range(0x0075,0x0079): #OR instruction
+            regindex = currentInstruction - 0x0074
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator = accumulator | regValue
+
+        elif currentInstruction == 0x0079: #ORI instructions (logical OR operation on the immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator = accumulator | value
+            self.programCounter += 1
+
+        elif currentInstruction in range(0x007A,0x007E): #XOR instruction
+            regindex = currentInstruction - 0x0079
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumultor = self.A
+            accumulator = accumulator ^ regValue
+
+        elif currentInstruction == 0x007E: #XRI instructions (logical XOR operation on the immediate value to the accumulator)
+            accumulator = self.A
+            value = self.instructionMemory[self.programCounter]
+            accumulator = accumulator ^ value
+            self.programCounter += 1
 
 MPU = Ra8_MPU()
