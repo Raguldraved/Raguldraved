@@ -30,11 +30,11 @@ class Ra8_MPU:
 
         #Flags register
         self.flags = {
-            'Z':False,
-            'S':False,
-            'P':False,
-            'C':False,
-            'O':False
+            'Z':False,#zero flag
+            'S':False,#sign flag
+            'P':False,#parity flag
+            'C':False,#carry flag
+            'O':False #overflow flag
         }
 
         #Setting up the MPU memory
@@ -246,5 +246,62 @@ class Ra8_MPU:
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator ^ value
             self.programCounter += 1
+
+        elif currentInstruction in range(0x0088,0x0091): #Unconditional and Conditional jump instructions
+            Type = currentInstruction - 0x0087
+            match Type:
+                case 1: #JMP instruction (Unconditional jump to the specified instruction memory address)
+                    high_byte = self.instructionMemory[self.programCounter + 1]
+                    low_byte = self.instructionMemory[self.programCounter]
+                    address = (high_byte << 8) | low_byte
+                    self.programCounter = address
+                case 2: 
+                    if self.flags['C'] == True: #JC instruction (jump if carry)
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 3:
+                    if self.flags['C'] == False: #JNC instruction (jump if carry)
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 4:
+                    if self.flags['Z'] == True:
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 5:
+                    if self.flags['Z'] == False:
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 6:
+                    if self.flags['S'] == False:
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 7:
+                    if self.flags['S'] == True:
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 8:
+                    if self.flags['P'] == True: #JE instructipm (jump if even)
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 9:
+                    if self.flags['P'] == False: #JO instructions (jump if odd_)
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
 
 MPU = Ra8_MPU()
