@@ -41,7 +41,8 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
-        self.halted = False
+        self._halted = False
+        self._handleflags = False
 
     def setFlag(self,flag,value:bool):
         if flag in self.flags:
@@ -72,7 +73,7 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
-    ######FETCH,DECODEANDEXECUTE and  FUNCTIONS MUST BE PLACED IN A WHILE LOOP########
+    ######FETCH,DECODEANDEXECUTE and HANDLECARRY FUNCTIONS MUST BE PLACED IN A WHILE LOOP WITH CORRECT ORDER########
     ''' 
     Todo:
     1: Adding method to set flags at the end of every operation
@@ -108,7 +109,7 @@ class Ra8_MPU:
             immediate_value = self.instructionMemory[self.programCounter]
             setattr(self,register,immediate_value)
             self.programCounter += 1
-            print(f'The immediate value {immediate_value} has been moved to {self.register_map[hex]}')
+            #print(f'The immediate value {immediate_value} has been moved to {self.register_map[hex]}')
         
         elif currentInstruction == 0x0041: #LDA instruction (load accumulator from memory)
             high_byte = self.instructionMemory[self.programCounter + 1]
@@ -185,5 +186,18 @@ class Ra8_MPU:
             accumulator = accumulator // value
             self.programCounter += 1 
         
+        elif currentInstruction == 0x0084: #CMC instruction (Complement the carry flag)
+            carry_flag = self.flags['C'] 
+            carry_flag = not carry_flag 
+
+        elif currentInstruction == 0x0085: #STC instruction (Sets the carry flag to 1)
+            self.setFlag('C',True)
+
+        elif currentInstruction == 0x0086: #CLC instruction (Resets the carry flag to 0)
+            self.setFlag('C',False)
+
+        elif currentInstruction == 0x0087: #CMA instruction (Complements accumulator value withour changing the flags)          
+            accumulator = self.A
+            accumulator = not accumulator
 
 MPU = Ra8_MPU()
