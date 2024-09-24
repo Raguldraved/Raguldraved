@@ -41,8 +41,15 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
+        #Setting up the call and general purpose stack
+        self.Stack = self.dataMemory[self.stackPointer]
+
         self._halted = False
         self._handleflags = False
+    
+    def _Push(self,value):
+        self.Stack = value
+        self.stackPointer -= 1
 
     def setFlag(self,flag,value:bool):
         if flag in self.flags:
@@ -268,25 +275,25 @@ class Ra8_MPU:
                         address = (high_byte << 8) | low_byte
                         self.programCounter = address
                 case 4:
-                    if self.flags['Z'] == True:
+                    if self.flags['Z'] == True: #JZ instruction
                         high_byte = self.instructionMemory[self.programCounter + 1]
                         low_byte = self.instructionMemory[self.programCounter]
                         address = (high_byte << 8) | low_byte
                         self.programCounter = address
                 case 5:
-                    if self.flags['Z'] == False:
+                    if self.flags['Z'] == False: #JNZ instruction
                         high_byte = self.instructionMemory[self.programCounter + 1]
                         low_byte = self.instructionMemory[self.programCounter]
                         address = (high_byte << 8) | low_byte
                         self.programCounter = address
                 case 6:
-                    if self.flags['S'] == False:
+                    if self.flags['S'] == False: #JP instruction
                         high_byte = self.instructionMemory[self.programCounter + 1]
                         low_byte = self.instructionMemory[self.programCounter]
                         address = (high_byte << 8) | low_byte
                         self.programCounter = address
                 case 7:
-                    if self.flags['S'] == True:
+                    if self.flags['S'] == True: #JM instruction 
                         high_byte = self.instructionMemory[self.programCounter + 1]
                         low_byte = self.instructionMemory[self.programCounter]
                         address = (high_byte << 8) | low_byte
