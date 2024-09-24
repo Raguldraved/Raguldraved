@@ -4,7 +4,6 @@ This program is used for testing functions in MPU EMULATOR.py script before impl
 
 class Stack: #testing the stack class
     def __init__(self) -> None:
-        
         self.dataMemory = [0] * 65536
         self.stackPointer = 0xffff
         
