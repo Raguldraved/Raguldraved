@@ -41,15 +41,8 @@ class Ra8_MPU:
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
-        #Setting up the call and general purpose stack
-        self.Stack = self.dataMemory[self.stackPointer]
-
         self._halted = False
         self._handleflags = False
-    
-    def _Push(self,value):
-        self.Stack = value
-        self.stackPointer -= 1
 
     def setFlag(self,flag,value:bool):
         if flag in self.flags:
@@ -91,7 +84,7 @@ class Ra8_MPU:
     1: Adding method to set flags at the end of every operation
 
         Note:_handleflags must be set to false when fetching instructions
-        and must be set to true when necessay in the decodeandexecute function
+        and set to true when necessay in the decodeandexecute function
     '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
