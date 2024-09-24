@@ -186,7 +186,7 @@ class Ra8_MPU:
             self.programCounter += 1 
 
         elif currentInstruction in range(0x006b,0x006f): #DIV instruction
-            regindex = currentInstruction - 0x005a
+            regindex = currentInstruction - 0x006a
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator // regValue
