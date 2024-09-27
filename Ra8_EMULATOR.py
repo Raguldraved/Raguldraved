@@ -46,6 +46,7 @@ class Ra8_MPU():
 
         #Setting up objects
         self.stack = Stack()
+        self.bitwise = bitwise()
 
     def setFlag(self,flag,value:bool):
         if flag in self.flags:
@@ -84,14 +85,7 @@ class Ra8_MPU():
         self._handleflags = False
 
     ######FETCH,DECODEANDEXECUTE and HANDLECARRY FUNCTIONS MUST BE PLACED IN A WHILE LOOP WITH CORRECT ORDER########
-    ''' 
-    REMINDER: REMEMBER WHEN I ADDED/REMOVED INSTRUCTIONS IN THE INSTRUCTION TABLE? 
-
-        YEAH TURNS OUT EVERY TIME I ADD OR REMOVE NEW INSTRUCTIONS THE MACHINE CODES 
-    OF THE FOLLOWING INSTRUCTIONS IS INCREMENTED OR DECREMENTED BY 1 RESPECTIVELY 
-    SO DONT FORGET TO CHECK IF THE INSTRUCTIONS AND THE MACHINE CODE IS ASSIGNED 
-    PROPERLY IN THIS CODE AFTER COMPLETION. 
-
+    '''  
     Todo:
     1: Adding method to set flags at the end of every operation
 
@@ -383,8 +377,36 @@ class Ra8_MPU():
                 case 5:
                     if self.flags['Z'] == False: #RNZ instructioN
                         self.programcounter = returnAddress
-                    
 
+        elif currentInstruction == 0x0098: #INC instruction
+            accumulator = self.A
+            accumulator += 1
+
+        elif currentInstruction == 0x0099: #DCR instruction
+            accumulator = self.A
+            accumulator -= 1
+
+        elif currentInstruction in range(0x0052,0x005a): #Bitwise Rotate and Shift instructions          
+            Type = currentInstruction - 0x0051
+            accumulator = self.A
+            match Type:
+                case 1:#RS instructions
+                    self.bitwise.Logic_rightShift(accumulator) 
+                case 2:#RSI instructions
+                    self.bitwise.Arithmetic_rightShift(accumulator) 
+                case 3:#LS instructions
+                    self.bitwise.Logic_leftShift(accumulator) 
+                case 4:#LSI instructions
+                    self.bitwise.Arithmetic_leftShift(accumulator) 
+                case 5:#RL instructions
+                    self.bitwise.Logic_leftRotate(accumulator) 
+                case 6:#RLI instructions
+                    self.bitwise.Arithmetic_leftRotate(accumulator)  
+                case 7:#RR instructions
+                    self.bitwise.Logic_rightRotate(accumulator)  
+                case 8:#RRI instructions
+                    self.bitwise.Arithmetic_rightRotate(accumulator)  
+                     
 class Stack: #To perform stack operations and stuffs
     def __init__(self) -> None:
 
@@ -414,5 +436,48 @@ class Stack: #To perform stack operations and stuffs
             #print(data) #comment this line when not needed
             return data 
 
+class bitwise: #To perform bitwise operations
+    def Logic_rightShift(self,value:int):
+        val = (value >> 1) & 0xff
+        return val
+    
+    def Logic_leftShift(self,value:int):
+        val = (value << 1) & 0xff
+        return val 
+    
+    def Logic_rightRotate(self,value:int):
+        val = ((value >> 1)|(value << 7)) & 0xff
+        return  val
+    
+    def Logic_leftRotate(self,value:int):
+        val = ((value << 1)|(value >>7)) & 0xff
+        return val
 
-MPU = Ra8_MPU()
+    def Arithmetic_rightShift(self,value:int):
+        msb = value & 0x80
+        lower7bits = value & 0x7f
+        val = (lower7bits >> 1) & 0x7f
+        result = msb | val
+        return result
+
+    def Arithmetic_leftShift(self,value:int):
+        msb = value & 0x80
+        lower7bits = value & 0x7f
+        val = (lower7bits << 1) & 0x7f
+        result = msb | val
+        return result
+    
+    def Arithmetic_rightRotate(self,value:int):
+        msb = value & 0x80
+        lower7bits = value & 0x7f
+        val = ((lower7bits >> 1)|(lower7bits << 6)) & 0x7f
+        result = msb | val
+        return result
+    
+    def Arithmetic_leftRotate(self,value:int):
+        msb = value & 0x80
+        lower7bits = value & 0x7f
+        val = ((lower7bits << 1)|(lower7bits >> 6)) & 0x7f
+        result = msb | val
+        return result
+
