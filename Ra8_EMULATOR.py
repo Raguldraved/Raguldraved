@@ -381,10 +381,12 @@ class Ra8_MPU():
         elif currentInstruction == 0x0098: #INC instruction
             accumulator = self.A
             accumulator += 1
+            self.programCounter +=1
 
         elif currentInstruction == 0x0099: #DCR instruction
             accumulator = self.A
             accumulator -= 1
+            self.programCounter +=1
 
         elif currentInstruction in range(0x0052,0x005a): #Bitwise Rotate and Shift instructions          
             Type = currentInstruction - 0x0051
@@ -405,7 +407,8 @@ class Ra8_MPU():
                 case 7:#RR instructions
                     self.bitwise.Logic_rightRotate(accumulator)  
                 case 8:#RRI instructions
-                    self.bitwise.Arithmetic_rightRotate(accumulator)  
+                    self.bitwise.Arithmetic_rightRotate(accumulator)
+            self.programCounter +=1  
                      
 class Stack: #To perform stack operations and stuffs
     def __init__(self) -> None:
