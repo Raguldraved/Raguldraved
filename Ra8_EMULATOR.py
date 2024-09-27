@@ -34,14 +34,13 @@ class Ra8_MPU():
             'S':False,#sign flag
             'P':False,#parity flag
             'C':False,#carry flag
-            'O':False #overflow flag
         }
 
         #Setting up the MPU memory
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
 
-        #Setting up boolean variables
+        #boolean variables
         self._halted = False
         self._handleflags = False
 
@@ -73,11 +72,13 @@ class Ra8_MPU():
             'S':False,
             'P':False,
             'C':False,
-            'O':False
         }
 
         self.instructionMemory = [0] * 65536
         self.dataMemory = [0] * 65536
+
+        self._halted = False
+        self._handleflags = False
 
         self._halted = False
         self._handleflags = False
@@ -156,124 +157,126 @@ class Ra8_MPU():
             self.dataMemory[address] = getattr(self,(self.register_map[regindex]))
             self.programCounter +=2
 
-        elif currentInstruction == 0x0049: #STA instruction (store accumulator value to the given memory address)
+        elif currentInstruction == 0x0047: #STA instruction (store accumulator value to the given memory address)
             high_byte = self.instructionMemory[self.programCounter + 1]
             low_byte = self.instructionMemory[self.programCounter]
             address = (high_byte << 8) | low_byte
             self.dataMemory[address] = self.A
             self.programCounter += 2
         
-        elif currentInstruction in range(0x005c,0x0060): #ADD instructions
-            regindex = currentInstruction - 0x005b
+        elif currentInstruction in range(0x005a,0x005e): #ADD instructions
+            regindex = currentInstruction - 0x0059
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator += regValue
 
-        elif currentInstruction == 0x0060: #ADI instruction (Add immediate value to the accumulator)
+        elif currentInstruction == 0x005e: #ADI instruction (Add immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator  += value
             self.programCounter += 1
 
-        elif currentInstruction in range(0x0061,0x0065): #SUB instructions
-            regindex = currentInstruction - 0x0060
+        elif currentInstruction in range(0x005f,0x0063): #SUB instructions
+            regindex = currentInstruction - 0x005e
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator -= regValue
 
-        elif currentInstruction == 0x0065: #SUI instruction (Sub immediate value to the accumulator)
+        elif currentInstruction == 0x0063: #SUI instruction (Sub immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator -= value
             self.programCounter += 1
 
-        elif currentInstruction in range(0x0066,0x006a): #MUL instructions
-            regindex = currentInstruction - 0x0065
+        elif currentInstruction in range(0x0064,0x0068): #MUL instructions
+            regindex = currentInstruction - 0x0063
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator * regValue
 
-        elif currentInstruction == 0x006a: #MUI instruction (Multiply immediate value to the accumulator)
+        elif currentInstruction == 0x0068: #MUI instruction (Multiply immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator * value
             self.programCounter += 1 
 
-        elif currentInstruction in range(0x006b,0x006f): #DIV instructions
-            regindex = currentInstruction - 0x006a
+        elif currentInstruction in range(0x0069,0x006d): #DIV instructions
+            regindex = currentInstruction - 0x0068
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator // regValue
 
-        elif currentInstruction == 0x006f: #DII instruction (Divide immediate value to the accumulator)
+        elif currentInstruction == 0x006d: #DII instruction (Divide immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator // value
             self.programCounter += 1 
         
-        elif currentInstruction == 0x0084: #CMC instruction (Complement the carry flag)
+        elif currentInstruction == 0x0082: #CMC instruction (Complement the carry flag)
             carry_flag = self.flags['C'] 
             carry_flag = not carry_flag 
 
-        elif currentInstruction == 0x0085: #STC instruction (Sets the carry flag to 1)
+        elif currentInstruction == 0x0083: #STC instruction (Sets the carry flag to 1)
             self.setFlag('C',True)
 
-        elif currentInstruction == 0x0086: #CLC instruction (Resets the carry flag to 0)
+        elif currentInstruction == 0x0084: #CLC instruction (Resets the carry flag to 0)
             self.setFlag('C',False)
 
-        elif currentInstruction == 0x0087: #CMA instruction (Complements accumulator value withour changing the flags)          
+        elif currentInstruction == 0x0085: #CMA instruction (Complements accumulator value withour changing the flags)          
             accumulator = self.A
             accumulator = not accumulator
 
-        elif currentInstruction in range(0x0070,0x0074): #AND instructions
-            regindex = currentInstruction - 0x006F
+        elif currentInstruction in range(0x006e,0x0072): #AND instructions
+            regindex = currentInstruction - 0x006d
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator & regValue
 
-        elif currentInstruction == 0x0074: #ANI instruction (logical AND operation on the Immediate value to the accumulator)
+        elif currentInstruction == 0x0072: #ANI instruction (logical AND operation on the Immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator & value
             self.programCounter += 1
 
-        elif currentInstruction in range(0x0075,0x0079): #OR instructions
-            regindex = currentInstruction - 0x0074
+        elif currentInstruction in range(0x0073,0x0077): #OR instructions
+            regindex = currentInstruction - 0x0072
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator | regValue
 
-        elif currentInstruction == 0x0079: #ORI instruction (logical OR operation on the immediate value to the accumulator)
+        elif currentInstruction == 0x0077: #ORI instruction (logical OR operation on the immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator | value
             self.programCounter += 1
 
-        elif currentInstruction in range(0x007A,0x007E): #XOR instructions
-            regindex = currentInstruction - 0x0079
+        elif currentInstruction in range(0x0078,0x007c): #XOR instructions
+            regindex = currentInstruction - 0x0077
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator ^ regValue
 
-        elif currentInstruction == 0x007E: #XRI instruction (logical XOR operation on the immediate value to the accumulator)
+        elif currentInstruction == 0x007c: #XRI instruction (logical XOR operation on the immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator ^ value
             self.programCounter += 1
 
-        elif currentInstruction in range(0x004a,0X004f): #PUSH instructions
-            regindex = currentInstruction - 0x004a
+        elif currentInstruction in range(0x0048,0X004d): #PUSH instructions
+            regindex = currentInstruction - 0x0048
             regValue = getattr(self,(self.register_map[regindex]))
             self.stack.Push(regValue)
+            self.programCounter += 1
 
-        elif currentInstruction in range(0x004f,0x0054): #POP instructions
+        elif currentInstruction in range(0x004d,0x052): #POP instructions
             regindex = currentInstruction = 0x0050
             register = self.register_map[regindex]
             data = self.stack.Pop()
             setattr(self,register,data)
+            self.programCounter += 1
                    
-        elif currentInstruction in range(0x0088,0x0091): #Unconditional and Conditional jump instructions
-            Type = currentInstruction - 0x0087
+        elif currentInstruction in range(0x0086,0x008e): #Unconditional and Conditional jump instructions
+            Type = currentInstruction - 0x0085
             match Type:
                 case 1: #JMP instruction (Unconditional jump to the specified instruction memory address)
                     high_byte = self.instructionMemory[self.programCounter + 1]
@@ -322,12 +325,65 @@ class Ra8_MPU():
                         low_byte = self.instructionMemory[self.programCounter]
                         address = (high_byte << 8) | low_byte
                         self.programCounter = address
-                case 9:
-                    if self.flags['P'] == False: #JO instructions (jump if odd_)
+
+        elif currentInstruction in range(0x008e,0x0093): #Conditional and Unconditional call subroutine instructions
+            Type = currentInstruction - 0x008d
+            inst_highBYTE = (currentInstruction >> 8) & 0x00ff
+            inst_lowBYTE = (currentInstruction & 0xff)
+            self.stack.Push(inst_highBYTE)
+            self.stack.Push(inst_lowBYTE)
+            match Type:
+                case 1:
+                    high_byte = self.instructionMemory[self.programCounter + 1]
+                    low_byte = self.instructionMemory[self.programCounter]
+                    address = (high_byte << 8) | low_byte
+                    self.programCounter = address
+                case 2: 
+                    if self.flags['C'] == True: #CC instruction 
                         high_byte = self.instructionMemory[self.programCounter + 1]
                         low_byte = self.instructionMemory[self.programCounter]
                         address = (high_byte << 8) | low_byte
                         self.programCounter = address
+                case 3:
+                    if self.flags['C'] == False: #CNC instruction 
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 4:
+                    if self.flags['Z'] == True: #CZ instruction
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+                case 5:
+                    if self.flags['Z'] == False: #CNZ instruction
+                        high_byte = self.instructionMemory[self.programCounter + 1]
+                        low_byte = self.instructionMemory[self.programCounter]
+                        address = (high_byte << 8) | low_byte
+                        self.programCounter = address
+
+        elif currentInstruction in range(0x0093,0x0098): #Conditional and Unconditional return from subroutine instructions
+            low_byte = self.stack.Pop()
+            high_byte = self.stack.pop()
+            returnAddress = address = (high_byte << 8) | low_byte
+            Type = currentInstruction - 0x0092
+            match Type:
+                case 1: #Unconditional RET instructions
+                    self.programcounter = returnAddress
+                case 2: 
+                    if self.flags['C'] == True: #RC instruction 
+                        self.programcounter = returnAddress
+                case 3:
+                    if self.flags['C'] == False: #RNC instruction 
+                        self.programcounter = returnAddress
+                case 4:
+                    if self.flags['Z'] == True: #RZ instruction
+                        self.programcounter = returnAddress
+                case 5:
+                    if self.flags['Z'] == False: #RNZ instructioN
+                        self.programcounter = returnAddress
+                    
 
 class Stack: #To perform stack operations and stuffs
     def __init__(self) -> None:
@@ -342,9 +398,9 @@ class Stack: #To perform stack operations and stuffs
         self.stackPointer -= 1
 
     def Pop(self):
-        data = self.dataMemory[self.stackPointer + 1]
         self.stackPointer += 1
-        self.dataMemory[self.stackPointer + 1] = 0x0000
+        data = self.dataMemory[self.stackPointer]
+        self.dataMemory[self.stackPointer] = 0x0000
         #print(data) #comment this line when not needed
         return data
 
