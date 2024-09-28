@@ -26,7 +26,7 @@ class Ra8_MPU():
 
         #Special 16 bit registers that hold the addresses to the memory
         self.stackPointer = 0xFFFF
-        self.programCounter = 0x000
+        self.programCounter = 0x0000
 
         #Flags register
         self.flags = {
@@ -45,7 +45,7 @@ class Ra8_MPU():
         self._handleflags = False
 
         #Setting up objects
-        self.stack = Stack()
+        self.stack = Stack(self.dataMemory,self.stackPointer)
         self.bitwise = bitwise()
 
     def setFlag(self,flag,value:bool):
@@ -106,7 +106,7 @@ class Ra8_MPU():
             pass
 
         elif currentInstruction == 0x0001: #HLT instruction (halt)
-            self.halted = True 
+            self._halted = True 
         
         elif currentInstruction in range(0x0002,0x003a): #MOV instructions
             hex = currentInstruction
@@ -275,7 +275,7 @@ class Ra8_MPU():
                    
         elif currentInstruction in range(0x0086,0x008e): #Unconditional and Conditional jump instructions
             Type = currentInstruction - 0x0085
-            match Type:
+            match (Type):
                 case 1: #JMP instruction (Unconditional jump to the specified instruction memory address)
                     high_byte = self.instructionMemory[self.programCounter + 1]
                     low_byte = self.instructionMemory[self.programCounter]
@@ -330,7 +330,7 @@ class Ra8_MPU():
             inst_lowBYTE = (currentInstruction & 0xff)
             self.stack.Push(inst_highBYTE)
             self.stack.Push(inst_lowBYTE)
-            match Type:
+            match (Type):
                 case 1:
                     high_byte = self.instructionMemory[self.programCounter + 1]
                     low_byte = self.instructionMemory[self.programCounter]
@@ -366,7 +366,7 @@ class Ra8_MPU():
             high_byte = self.stack.pop()
             returnAddress = address = (high_byte << 8) | low_byte
             Type = currentInstruction - 0x0092
-            match Type:
+            match (Type):
                 case 1: #Unconditional RET instructions
                     self.programcounter = returnAddress
                 case 2: 
@@ -393,7 +393,7 @@ class Ra8_MPU():
         elif currentInstruction in range(0x0052,0x005a): #Bitwise Rotate and Shift instructions          
             Type = currentInstruction - 0x0051
             accumulator = self.A
-            match Type:
+            match (Type):
                 case 1:#RS instructions
                     self.bitwise.Logic_rightShift(accumulator) 
                 case 2:#RSI instructions
@@ -444,13 +444,19 @@ class Ra8_MPU():
         else:
             self.setFlag('P',True)
 
+    def run(self):
+        while 1:
+            if self._halted:
+                break
+            else:
+                self.fetch()
+                self.decodeANDexecute()
+
 class Stack: #To perform stack operations
-    def __init__(self) -> None:
+    def __init__(self,dta,sp) -> None:
 
-        self.MPU = Ra8_MPU() #MPU object
-
-        self.dataMemory = self.MPU.dataMemory
-        self.stackPointer = self.MPU.stackPointer
+        self.dataMemory = dta
+        self.stackPointer = sp
         
     def Push(self,data):
         self.dataMemory[self.stackPointer] = data
