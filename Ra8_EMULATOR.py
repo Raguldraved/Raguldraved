@@ -159,48 +159,56 @@ class Ra8_MPU():
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator += regValue
+            self.handleFlag(accumulator)
 
         elif currentInstruction == 0x005e: #ADI instruction (Add immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator  += value
             self.programCounter += 1
+            self.handleFlag(accumulator)
 
         elif currentInstruction in range(0x005f,0x0063): #SUB instructions
             regindex = currentInstruction - 0x005e
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator -= regValue
+            self.handleFlag(accumulator)
 
         elif currentInstruction == 0x0063: #SUI instruction (Sub immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator -= value
             self.programCounter += 1
+            self.handleFlag(accumulator)
 
         elif currentInstruction in range(0x0064,0x0068): #MUL instructions
             regindex = currentInstruction - 0x0063
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator * regValue
+            self.handleFlag(accumulator)
 
         elif currentInstruction == 0x0068: #MUI instruction (Multiply immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator * value
             self.programCounter += 1 
+            self.handleFlag(accumulator)
 
         elif currentInstruction in range(0x0069,0x006d): #DIV instructions
             regindex = currentInstruction - 0x0068
             regValue = getattr(self,(self.register_map[regindex]))
             accumultor = self.A
             accumulator = accumulator // regValue
+            self.handleFlag(accumulator)
 
         elif currentInstruction == 0x006d: #DII instruction (Divide immediate value to the accumulator)
             accumulator = self.A
             value = self.instructionMemory[self.programCounter]
             accumulator = accumulator // value
             self.programCounter += 1 
+            self.handleFlag(accumulator)
         
         elif currentInstruction == 0x0082: #CMC instruction (Complement the carry flag)
             carry_flag = self.flags['C'] 
