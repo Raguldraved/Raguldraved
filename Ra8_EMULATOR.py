@@ -52,10 +52,15 @@ class Ra8_MPU():
         if flag in self.flags:
             self.flags[flag] = value
     
-    def getFlag(self,flag): #If the given flag is in the flags register it returns its value
-        return self.flags.get(flag,0) #if the flag is not in the register then a default value of 0 will be returned 
-    
-    def reset(self): #Resets all the register and memory data to its inital values
+    def resetFlag(self):
+        self.flags = {
+            'Z':False,
+            'S':False,
+            'P':False,
+            'C':False,
+        }
+
+    def masterReset(self): #Resets all the registers and memory data to its inital values
         self.A = 0
         self.B = 0
         self.C = 0
@@ -84,24 +89,15 @@ class Ra8_MPU():
         self._halted = False
         self._handleflags = False
 
-    ######FETCH,DECODEANDEXECUTE and HANDLECARRY FUNCTIONS MUST BE PLACED IN A WHILE LOOP WITH CORRECT ORDER########
+    ######FETCH,DECODEANDEXECUTE FUNCTIONS MUST BE PLACED IN A WHILE LOOP WITH CORRECT ORDER########
     '''  
     Todo:
-    1: Adding method to set flags at the end of every operation
-
-        Note:_handleflags must be set to false when fetching instructions
-        and set to true when necessay in the decodeandexecute function
-
-        Another note: I still haven't figured out the flags, I'm gonna 
-        let future rithik suffer with that.
+    1: Check if every instructions , handling porgramCounter values and flags are set properly
     '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
         self.instructionRegister = self.instructionMemory[self.programCounter]
         self.programCounter += 1
-
-    def handleFlag():
-        pass
 
     def decodeANDexecute(self):
         currentInstruction = self.instructionRegister #Identifier to address the instruction register
@@ -381,12 +377,10 @@ class Ra8_MPU():
         elif currentInstruction == 0x0098: #INC instruction
             accumulator = self.A
             accumulator += 1
-            self.programCounter +=1
 
         elif currentInstruction == 0x0099: #DCR instruction
             accumulator = self.A
             accumulator -= 1
-            self.programCounter +=1
 
         elif currentInstruction in range(0x0052,0x005a): #Bitwise Rotate and Shift instructions          
             Type = currentInstruction - 0x0051
@@ -409,8 +403,40 @@ class Ra8_MPU():
                 case 8:#RRI instructions
                     self.bitwise.Arithmetic_rightRotate(accumulator)
             self.programCounter +=1  
-                     
-class Stack: #To perform stack operations and stuffs
+
+        elif currentInstruction in range(0x007d,0x0081): #CMP instructions
+            regindex = currentInstruction - 0xd007e
+            regValue = getattr(self,(self.register_map[regindex]))
+            accumulator = self.A
+            temp = accumulator - regValue
+            self.handleFlag(temp)
+
+        elif currentInstruction == 0x0081: #CMI instruction
+            value = self.dataMemory[self.programCounter]
+            accumulator = self.A
+            temp = accumulator - regValue
+            self.handleFlag(temp)
+            programCounter += 1
+
+    def handleFlag(self,target): #Takes a value and sets appropriate flags
+        if target >= 256:
+            self.setFlag('C',True)
+        else:
+            self.setFlag('C',False)
+        if target == 0:
+            self.setFlag('Z',True)
+        else:
+            self.setFlag('Z',False)
+        if target < 0:
+            self.setFlag('S',True)
+        else:
+            self.setFlag('S',False)
+        if target % 2:
+            self.setFlag('P',False)
+        else:
+            self.setFlag('P',True)
+
+class Stack: #To perform stack operations
     def __init__(self) -> None:
 
         self.MPU = Ra8_MPU() #MPU object
