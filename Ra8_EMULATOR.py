@@ -93,7 +93,13 @@ class Ra8_MPU():
     '''  
     Todo:
     1: Check if every instructions , handling porgramCounter values and flags are set properly
-    2. Find a way to handle 16bit data and addresses
+    2. Find a way to handle 16bit data and addresses:
+            right now every register can hold integers 
+            greater than 255 thats not possible with the 8bit 
+            registers in the circuit therefore i must find a 
+            way to pair registers and memory locations to contain 
+            these 16bit integers as two separate high and low bytes 
+            in 2 8bit memory locations
     '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
@@ -380,9 +386,11 @@ class Ra8_MPU():
 
         elif currentInstruction == 0x0098: #INC instruction
             self.A += 1
+            self.handleFlag(self.A)
 
         elif currentInstruction == 0x0099: #DCR instruction
             self.A -= 1
+            self.handleFlag(self.A)
 
         elif currentInstruction in range(0x0052,0x005a): #Bitwise Rotate and Shift instructions          
             Type = currentInstruction - 0x0051
