@@ -210,7 +210,7 @@ class Ra8_MPU():
             except ZeroDivisionError:
                 self.A = 0 
                 self.handleFlag(self.A)
-                
+
         elif currentInstruction == 0x0082: #CMC instruction (Complement the carry flag)
             carry_flag = self.flags['C'] 
             carry_flag = not carry_flag 
@@ -434,13 +434,38 @@ class Ra8_MPU():
         else:
             self.setFlag('P',True)
 
-    def run(self):
+    def run(self,debug = False):
+        cycle = 0
         while 1:
             if self._halted:
                 break
             else:
+                if debug:
+                    print(f'programCounter: {hex(self.programCounter)}')
+
                 self.fetch()
                 self.decodeANDexecute()
+
+                if debug:
+                    cycle += 1
+                    print(f'currentCycle: {cycle}')
+                    print(f'current Instruction: {hex(self.instructionRegister)}')
+                    print('----------------------------------------------------------')
+                    print(f'Flags:| {self.flags}')
+                    print(f'Register A: {self.A}')
+                    print(f'Register B: {self.B}')
+                    print(f'Register C: {self.C}')
+                    print(f'Register D: {self.D}')
+                    print(f'Register E: {self.E}')
+                    print(f'Register H: {self.H}')
+                    print(f'Register L: {self.L}')
+                    print(f'Register M: {self.M}')
+                    print(f'Halted?: {self._halted}')
+                    print(f'programCounter after execution: {hex(self.programCounter)}')
+                    print(f'stackPointer: {hex(self.stackPointer)}')
+                    print(f'stackTop: {hex(self.stack.topElement(),)}') 
+                    print(f'stackPreviousElement: {hex(self.stack.previousElement())}')           
+                    print('___________________________________________________________')
 
 class Stack: #To perform stack operations
     def __init__(self,dta,sp) -> None:
@@ -462,6 +487,16 @@ class Stack: #To perform stack operations
     def topElement(self):
         if self.stackPointer < 0xffff:
             data = self.dataMemory[self.stackPointer + 1]
+            #print(data) #comment this line when not needed
+            return data
+        else:
+            data = 0x0000
+            #print(data) #comment this line when not needed
+            return data 
+    
+    def previousElement(self):
+        if self.stackPointer < 0xffff:
+            data = self.dataMemory[self.stackPointer + 2]
             #print(data) #comment this line when not needed
             return data
         else:

@@ -13,6 +13,4 @@ dataMemory[0x0033] = 6
 for index,value in enumerate(lines):
     instructionMemory[index] = int(value,16)
     
-emulator.run()
-print(emulator.flags)
-print(emulator.A)
+emulator.run(True)
