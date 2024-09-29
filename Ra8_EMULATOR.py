@@ -93,6 +93,7 @@ class Ra8_MPU():
     '''  
     Todo:
     1: Check if every instructions , handling porgramCounter values and flags are set properly
+    2. Find a way to handle 16bit data and addresses
     '''   
 
     def fetch(self): #Fetches and stores instruction in the instructionRegister
@@ -191,17 +192,25 @@ class Ra8_MPU():
             self.handleFlag(self.A)
 
         elif currentInstruction in range(0x0069,0x006d): #DIV instructions
-            regindex = currentInstruction - 0x0068
-            regValue = getattr(self,(self.register_map[regindex]))
-            self.A = self.A // regValue
-            self.handleFlag(self.A)
+            try:
+                regindex = currentInstruction - 0x0068
+                regValue = getattr(self,(self.register_map[regindex]))
+                self.A = self.A // regValue
+                self.handleFlag(self.A)
+            except ZeroDivisionError:
+                self.A = 0
+                self.handleFlag(self.A)
 
         elif currentInstruction == 0x006d: #DII instruction (Divide immediate value to the accumulator)
-            value = self.instructionMemory[self.programCounter]
-            self.A = self.A // value
-            self.programCounter += 1 
-            self.handleFlag(self.A)
-        
+            try:    
+                value = self.instructionMemory[self.programCounter]
+                self.A = self.A // value
+                self.programCounter += 1 
+                self.handleFlag(self.A)
+            except ZeroDivisionError:
+                self.A = 0 
+                self.handleFlag(self.A)
+                
         elif currentInstruction == 0x0082: #CMC instruction (Complement the carry flag)
             carry_flag = self.flags['C'] 
             carry_flag = not carry_flag 
@@ -348,7 +357,7 @@ class Ra8_MPU():
 
         elif currentInstruction in range(0x0093,0x0098): #Conditional and Unconditional return from subroutine instructions
             low_byte = self.stack.Pop()
-            high_byte = self.stack.pop()
+            high_byte = self.stack.Pop()
             returnAddress = address = (high_byte << 8) | low_byte
             Type = currentInstruction - 0x0092
             match (Type):
@@ -407,6 +416,7 @@ class Ra8_MPU():
             programCounter += 1
 
     def handleFlag(self,target): #Takes a value and sets appropriate flags
+        self.resetFlag()
         if target >= 256:
             self.setFlag('C',True)
         else:
@@ -451,11 +461,11 @@ class Stack: #To perform stack operations
 
     def topElement(self):
         if self.stackPointer < 0xffff:
-            data = hex(self.dataMemory[self.stackPointer + 1])
+            data = self.dataMemory[self.stackPointer + 1]
             #print(data) #comment this line when not needed
             return data
         else:
-            data = hex(0x0000)
+            data = 0x0000
             #print(data) #comment this line when not needed
             return data 
 
