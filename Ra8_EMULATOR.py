@@ -37,8 +37,8 @@ class Ra8_MPU():
         }
 
         #Setting up the MPU memory
-        self.instructionMemory = [0] * 65536
-        self.dataMemory = [0] * 65536
+        self.instructionMemory = [0] * 0xffff
+        self.dataMemory = [0] * 0xffff
 
         #boolean variables
         self._halted = False
@@ -80,8 +80,8 @@ class Ra8_MPU():
             'C':False,
         }
 
-        self.instructionMemory = [0] * 65536
-        self.dataMemory = [0] * 65536
+        self.instructionMemory = [0] * 0xffff
+        self.dataMemory = [0] * 0xffff
 
         self._halted = False
         self._handleflags = False
@@ -136,9 +136,11 @@ class Ra8_MPU():
             self.programCounter += 2
 
         elif currentInstruction == 0x0042: #LDI instruction (load accumulator with immediate value)
-            data = self.instructionMemory[self.programCounter]
+            high_byte = self.instructionMemory[self.programCounter + 1]
+            low_byte = self.instructionMemory[self.programCounter]
+            data = (high_byte << 8) | low_byte
             self.A = data
-            self.programCounter += 1
+            self.programCounter += 2
 
         elif currentInstruction in range(0x0043,0x0047): #STR instructions (store B,C,D,E register values to memory)
             regindex = currentInstruction - 0x0042
