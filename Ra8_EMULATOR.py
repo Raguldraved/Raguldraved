@@ -109,10 +109,10 @@ class Ra8_MPU():
             self._halted = True 
         
         elif currentInstruction in range(0x0002,0x003a): #MOV instructions
-            hex = currentInstruction
-            hex = hex - 0x02    #expression to decode the registers from the hex instruction
-            Xreg = hex // 7
-            Yreg = hex % 7
+            hex1 = currentInstruction
+            hex1 = hex1 - 0x02    #expression to decode the registers from the hex instruction
+            Xreg = hex1 // 7
+            Yreg = hex1 % 7
             if Yreg >= Xreg:
                 Yreg += 1
             Value_to_be_moved = getattr(self,(self.register_map[Yreg]))#gets the value from the source register 
@@ -157,58 +157,50 @@ class Ra8_MPU():
         elif currentInstruction in range(0x005a,0x005e): #ADD instructions
             regindex = currentInstruction - 0x0059
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator += regValue
-            self.handleFlag(accumulator)
+            self.A = self.A + regValue
+            self.handleFlag(self.A)
 
         elif currentInstruction == 0x005e: #ADI instruction (Add immediate value to the accumulator)
-            accumulator = self.A
             value = self.instructionMemory[self.programCounter]
-            accumulator  += value
+            self.A  += value
             self.programCounter += 1
-            self.handleFlag(accumulator)
+            self.handleFlag(self.A)
 
         elif currentInstruction in range(0x005f,0x0063): #SUB instructions
             regindex = currentInstruction - 0x005e
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator -= regValue
-            self.handleFlag(accumulator)
+            self.A -= regValue
+            self.handleFlag(self.A)
 
         elif currentInstruction == 0x0063: #SUI instruction (Sub immediate value to the accumulator)
-            accumulator = self.A
             value = self.instructionMemory[self.programCounter]
-            accumulator -= value
+            self.A -= value
             self.programCounter += 1
-            self.handleFlag(accumulator)
+            self.handleFlag(self.A)
 
         elif currentInstruction in range(0x0064,0x0068): #MUL instructions
             regindex = currentInstruction - 0x0063
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator = accumulator * regValue
-            self.handleFlag(accumulator)
+            self.A = self.A * regValue
+            self.handleFlag(self.A)
 
         elif currentInstruction == 0x0068: #MUI instruction (Multiply immediate value to the accumulator)
-            accumulator = self.A
             value = self.instructionMemory[self.programCounter]
-            accumulator = accumulator * value
+            self.A = self.A * value
             self.programCounter += 1 
-            self.handleFlag(accumulator)
+            self.handleFlag(self.A)
 
         elif currentInstruction in range(0x0069,0x006d): #DIV instructions
             regindex = currentInstruction - 0x0068
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator = accumulator // regValue
-            self.handleFlag(accumulator)
+            self.A = self.A // regValue
+            self.handleFlag(self.A)
 
         elif currentInstruction == 0x006d: #DII instruction (Divide immediate value to the accumulator)
-            accumulator = self.A
             value = self.instructionMemory[self.programCounter]
-            accumulator = accumulator // value
+            self.A = self.A // value
             self.programCounter += 1 
-            self.handleFlag(accumulator)
+            self.handleFlag(self.A)
         
         elif currentInstruction == 0x0082: #CMC instruction (Complement the carry flag)
             carry_flag = self.flags['C'] 
@@ -220,44 +212,37 @@ class Ra8_MPU():
         elif currentInstruction == 0x0084: #CLC instruction (Resets the carry flag to 0)
             self.setFlag('C',False)
 
-        elif currentInstruction == 0x0085: #CMA instruction (Complements accumulator value withour changing the flags)          
-            accumulator = self.A
-            accumulator = not accumulator
+        elif currentInstruction == 0x0085: #CMA instruction (Complements self.A value withour changing the flags)          
+            self.A = not self.A
 
         elif currentInstruction in range(0x006e,0x0072): #AND instructions
             regindex = currentInstruction - 0x006d
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator = accumulator & regValue
+            self.A = self.A & regValue
 
-        elif currentInstruction == 0x0072: #ANI instruction (logical AND operation on the Immediate value to the accumulator)
-            accumulator = self.A
+        elif currentInstruction == 0x0072: #ANI instruction (logical AND operation on the Immediate value to the self.A)
             value = self.instructionMemory[self.programCounter]
-            accumulator = accumulator & value
+            self.A = self.A & value
             self.programCounter += 1
 
         elif currentInstruction in range(0x0073,0x0077): #OR instructions
             regindex = currentInstruction - 0x0072
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator = accumulator | regValue
+            self.A = self.A | regValue
 
-        elif currentInstruction == 0x0077: #ORI instruction (logical OR operation on the immediate value to the accumulator)
-            accumulator = self.A
+        elif currentInstruction == 0x0077: #ORI instruction (logical OR operation on the immediate value to the self.A)
             value = self.instructionMemory[self.programCounter]
-            accumulator = accumulator | value
+            self.A = self.A | value
             self.programCounter += 1
 
         elif currentInstruction in range(0x0078,0x007c): #XOR instructions
             regindex = currentInstruction - 0x0077
             regValue = getattr(self,(self.register_map[regindex]))
-            accumultor = self.A
-            accumulator = accumulator ^ regValue
+            self.A = self.A ^ regValue
 
-        elif currentInstruction == 0x007c: #XRI instruction (logical XOR operation on the immediate value to the accumulator)
-            accumulator = self.A
+        elif currentInstruction == 0x007c: #XRI instruction (logical XOR operation on the immediate value to the self.A)
             value = self.instructionMemory[self.programCounter]
-            accumulator = accumulator ^ value
+            self.A = self.A ^ value
             self.programCounter += 1
 
         elif currentInstruction in range(0x0048,0X004d): #PUSH instructions
@@ -383,46 +368,41 @@ class Ra8_MPU():
                         self.programcounter = returnAddress
 
         elif currentInstruction == 0x0098: #INC instruction
-            accumulator = self.A
-            accumulator += 1
+            self.A += 1
 
         elif currentInstruction == 0x0099: #DCR instruction
-            accumulator = self.A
-            accumulator -= 1
+            self.A -= 1
 
         elif currentInstruction in range(0x0052,0x005a): #Bitwise Rotate and Shift instructions          
             Type = currentInstruction - 0x0051
-            accumulator = self.A
             match (Type):
                 case 1:#RS instructions
-                    self.bitwise.Logic_rightShift(accumulator) 
+                    self.bitwise.Logic_rightShift(self.A) 
                 case 2:#RSI instructions
-                    self.bitwise.Arithmetic_rightShift(accumulator) 
+                    self.bitwise.Arithmetic_rightShift(self.A) 
                 case 3:#LS instructions
-                    self.bitwise.Logic_leftShift(accumulator) 
+                    self.bitwise.Logic_leftShift(self.A) 
                 case 4:#LSI instructions
-                    self.bitwise.Arithmetic_leftShift(accumulator) 
+                    self.bitwise.Arithmetic_leftShift(self.A) 
                 case 5:#RL instructions
-                    self.bitwise.Logic_leftRotate(accumulator) 
+                    self.bitwise.Logic_leftRotate(self.A) 
                 case 6:#RLI instructions
-                    self.bitwise.Arithmetic_leftRotate(accumulator)  
+                    self.bitwise.Arithmetic_leftRotate(self.A)  
                 case 7:#RR instructions
-                    self.bitwise.Logic_rightRotate(accumulator)  
+                    self.bitwise.Logic_rightRotate(self.A)  
                 case 8:#RRI instructions
-                    self.bitwise.Arithmetic_rightRotate(accumulator)
+                    self.bitwise.Arithmetic_rightRotate(self.A)
             self.programCounter +=1  
 
         elif currentInstruction in range(0x007d,0x0081): #CMP instructions
             regindex = currentInstruction - 0xd007e
             regValue = getattr(self,(self.register_map[regindex]))
-            accumulator = self.A
-            temp = accumulator - regValue
+            temp = self.A - regValue
             self.handleFlag(temp)
 
         elif currentInstruction == 0x0081: #CMI instruction
             value = self.dataMemory[self.programCounter]
-            accumulator = self.A
-            temp = accumulator - regValue
+            temp = self.A - regValue
             self.handleFlag(temp)
             programCounter += 1
 
