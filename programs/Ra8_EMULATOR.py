@@ -366,7 +366,7 @@ class Ra8_MPU():
         elif currentInstruction in range(0x0093,0x0098): #Conditional and Unconditional return from subroutine instructions
             low_byte = self.stack.Pop()
             high_byte = self.stack.Pop()
-            returnAddress = address = (high_byte << 8) | low_byte
+            returnAddress = (high_byte << 8) | low_byte
             Type = currentInstruction - 0x0092
             match (Type):
                 case 1: #Unconditional RET instructions
@@ -424,6 +424,59 @@ class Ra8_MPU():
             temp = self.A - regValue
             self.handleFlag(temp)
             programCounter += 1
+        
+        elif currentInstruction == 0x009a: #MOV X,A instruction
+            high_byte = self.H
+            low_byte = self.L
+            address = (high_byte << 8) | low_byte
+            self.dataMemory[address] = self.A
+        
+        elif currentInstruction == 0x009b: #MOV A,X instruction
+            high_byte = self.H
+            low_byte = self.L
+            address = (high_byte << 8) | low_byte
+            self.A = self.dataMemory[address]
+
+        elif currentInstruction == 0x009c: #INX instruction
+            high_byte = self.H
+            low_byte = self.L
+            address = (high_byte << 8) | low_byte
+            address += 1
+            high_byte = (address >> 8) & 0xff
+            low_byte = address & 0xff
+            self.H = high_byte
+            self.L = low_byte
+        
+        elif currentInstruction == 0x009d: #DCX instruction
+            high_byte = self.H
+            low_byte = self.L
+            address = (high_byte << 8) | low_byte
+            address -= 1
+            high_byte = (address >> 8) & 0xff
+            low_byte = address & 0xff
+            self.H = high_byte
+            self.L = low_byte
+        
+        elif currentInstruction == 0x009e: #LXI instruction
+            high_byte = self.instructionMemory[self.programCounter + 1]
+            low_byte = self.instructionMemory[self.programCounter]
+            self.H = high_byte
+            self.L = low_byte
+            self.programCounter += 2
+        
+        elif currentInstruction == 0x009f: #PUSH X instruction
+            self.stack.Push(self.H)
+            self.stack.Push(self.L)
+        
+        elif currentInstruction == 0x00a0: #POP X instruction
+            self.H = self.stack.Pop()
+            self.L = self.stack.Pop()
+        
+        elif currentInstruction == 0x00a1: #PCHL instruction
+            high_byte = self.instructionMemory[self.programCounter + 1]
+            low_byte = self.instructionMemory[self.programCounter]
+            address = (high_byte << 8) | low_byte
+            self.programCounter = address
 
     def handleFlag(self,target): #Takes a value and sets appropriate flags
         self.resetFlag()

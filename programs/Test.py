@@ -4,7 +4,7 @@ emulator = Ra8_MPU()
 instructionMemory = emulator.instructionMemory
 dataMemory = emulator.dataMemory
 
-machinecode_filename = 'machineCodes/factorial.txt'
+machinecode_filename = 'programs/machineCodes/factorial.txt'
 lines = open(machinecode_filename).read().splitlines()
 
 dataMemory[0x0069] = 5
